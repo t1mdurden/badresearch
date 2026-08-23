@@ -14,6 +14,22 @@ def make_result(content: str, *, url: str = "https://example.test/page",
     return WebResult(url=url, title=title, content=content)
 
 
+@pytest.fixture(autouse=True)
+def _no_real_oc(monkeypatch) -> None:
+    """Keep the rung-1.5 `oc` provider off unless a test binds it deliberately.
+
+    `fetch_tiered` resolves the real provider when `_oc` is omitted, and `oc` is an
+    external CLI that may or may not be on the machine running the suite. Without this
+    every rung-1-empty test would either spawn a subprocess and hit the network, or not,
+    depending on whose laptop it is. Tests that mean to exercise the rung pass `_oc`
+    explicitly, which takes precedence over this patch.
+
+    Patching CLI resolution rather than `oc.fetch` keeps the provider's own tests real:
+    they inject a runner, which bypasses resolution entirely.
+    """
+    monkeypatch.setattr("bad_research.browse.oc._resolve_cli", lambda: None)
+
+
 @pytest.fixture
 def good_result() -> WebResult:
     # Long, clean content — passes looks_like_junk (>= 300 chars, no bot/error signals).

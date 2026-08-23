@@ -23,3 +23,7 @@ docs/enhancements/
 
 # research vault — per-run output/scratch (eval + real runs), never shipped
 research/
+
+# Vendored third-party CLIs pulled by scripts/vendor-*.sh. Not committed while
+# only-cli/oc ships no LICENSE file (only-cli/oc#15).
+vendor/
