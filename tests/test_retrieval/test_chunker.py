@@ -2,6 +2,7 @@ import hashlib
 
 from bad_research.models.note import Note, NoteMeta
 from bad_research.retrieval.chunker import chunk_note, make_chunk_id
+from bad_research.retrieval.constants import CHUNK_BYTE_TARGET
 
 
 def _note(body: str, source="https://ex.com/a", content_type=None, status="draft") -> Note:
@@ -53,3 +54,13 @@ def test_chunk_text_is_verbatim_body_slice():
     for c in chunk_note(_note(body)):
         assert c.text == body[c.char_start:c.char_end]
         assert 0 <= c.char_start < c.char_end <= len(body)
+
+
+def test_blank_lineless_page_still_splits_below_the_hard_cap():
+    # A fetched page: one line per paragraph, no blank lines, no headings.
+    body = "\n".join(f"Sentence {i} about smart money indicators." for i in range(900))
+    chunks = chunk_note(_note(body))
+    assert len(chunks) > 1
+    assert max(len(c.text.encode()) for c in chunks) <= CHUNK_BYTE_TARGET * 2
+    for c in chunks:
+        assert c.text == body[c.char_start:c.char_end]
