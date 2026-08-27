@@ -106,6 +106,14 @@ def _build_user_message(query: str, docs: list[str]) -> str:
     return f"QUERY: {query}\nPASSAGES:\n{passages}"
 
 
+class RerankUnavailable(RuntimeError):
+    """The reranker could not form an opinion at all — no host model, no key, a
+    transport failure. Distinct from "the reranker scored these docs 0.0", which
+    is a judgement the fusion and the relevance gate are entitled to act on.
+    Callers must degrade by ignoring the reranker, never by treating its absence
+    as a low score."""
+
+
 class ClaudeCodeReranker:
     """The DEFAULT keyless reranker — the host model scores candidates 0..1 with
     the ONE frozen prompt + parser (shared with web/search HostModelReranker).
@@ -151,15 +159,21 @@ class ClaudeCodeReranker:
             # fully-unparseable reply, per-item 0.0 on a missing/malformed item).
             scores = _parse_scores(resp.text, n=len(docs))
         except Exception as e:  # a failed host call must not crash retrieval (§5.3)
-            # Degrade to BM25/initial order (no candidate dropped) — but a broken host
-            # LLM silently lowering rerank quality should be observable, so warn ONCE.
+            # Signal "no opinion" — do NOT return zeros. A 0.0 is a real worst-case
+            # relevance judgement, and three_tier_fuse blends it into the final score
+            # that RELEVANCE_GATE then tests: at w=0.60 an uncertain doc would need an
+            # initial score above 1.0 to survive, so the whole uncertain band is
+            # silently dropped and the caller gets an empty result set that looks like
+            # "nothing matched". That is what this except block used to do, despite the
+            # comment claiming no candidate was dropped. The caller decides how to
+            # degrade; it is the only layer that knows about the gate.
             if not ClaudeCodeReranker._host_failure_warned:
                 ClaudeCodeReranker._host_failure_warned = True
                 logging.getLogger("bad_research.rerank").warning(
                     "host-model rerank failed (%s); degrading to BM25/initial order "
                     "until the host LLM is reachable.", e,
                 )
-            scores = [0.0] * len(docs)
+            raise RerankUnavailable(str(e)) from e
         # Clamp to [0,1] (defensive; the parser already keeps the model's raw float).
         scored = [(i, max(0.0, min(1.0, float(s)))) for i, s in enumerate(scores)]
         scored.sort(key=lambda x: (-x[1], x[0]))  # desc by score, stable by index

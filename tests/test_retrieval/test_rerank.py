@@ -131,8 +131,17 @@ def test_json_inside_markdown_fence_is_still_parsed():
     assert out[0] == 0.4 and out[1] == 0.6
 
 
-def test_llm_call_exception_degrades_to_all_zero():
-    # If the host provider raises, retrieval must not crash — all 0.0 (§5.3).
+def test_llm_call_exception_signals_unavailable_not_zero():
+    # If the host provider raises, the reranker must say "no opinion" — NOT score
+    # every candidate 0.0. A 0.0 is a real worst-case judgement that three_tier_fuse
+    # blends into the score RELEVANCE_GATE then tests, so returning zeros silently
+    # dropped the whole uncertain band and produced an empty result set that read as
+    # "nothing matched". The engine is the only layer that knows about the gate, so
+    # it is the layer that decides how to degrade.
+    import pytest
+
+    from bad_research.retrieval.rerank import RerankUnavailable
+
     class _BoomLLM:
         name = "boom"
 
@@ -140,8 +149,8 @@ def test_llm_call_exception_degrades_to_all_zero():
             raise RuntimeError("host model unavailable")
 
     rr = ClaudeCodeReranker(llm=_BoomLLM())
-    out = dict(rr.rerank("q", ["a", "b"]))
-    assert out == {0: 0.0, 1: 0.0}
+    with pytest.raises(RerankUnavailable):
+        rr.rerank("q", ["a", "b"])
 
 
 # ── E14: zerank-2 documented opt-in (STEAL_LIST #6b) ─────────────────────────
@@ -214,11 +223,17 @@ def test_host_failure_warns_once_then_degrades_silently(caplog):
         def complete(self, *a, **k):
             raise RuntimeError("host model unavailable")
 
+    import contextlib
+
+    from bad_research.retrieval.rerank import RerankUnavailable
+
     ClaudeCodeReranker._host_failure_warned = False  # reset process-global for the test
     rr = ClaudeCodeReranker(llm=_BoomLLM())
     with caplog.at_level(logging.WARNING, logger="bad_research.rerank"):
-        rr.rerank("q", ["a", "b"])   # first failure → warns
-        rr.rerank("q", ["c", "d"])   # second failure → silent (no second warn)
+        with contextlib.suppress(RerankUnavailable):
+            rr.rerank("q", ["a", "b"])   # first failure → warns
+        with contextlib.suppress(RerankUnavailable):
+            rr.rerank("q", ["c", "d"])   # second failure → silent (no second warn)
     warnings = [r for r in caplog.records if r.name == "bad_research.rerank"]
     assert len(warnings) == 1
     assert "host-model rerank failed" in warnings[0].message
