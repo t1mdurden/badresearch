@@ -377,7 +377,12 @@ def search_cmd(
         if not results:
             results = [n for _sc, n in scored[:top_k]]
     else:
-        results = candidates[:top_k]
+        # Empty query = inventory, not search. A tag/type listing that silently
+        # stops at top_k reports a 165-note corpus as 20 and downstream steps
+        # size their work off the lie, so a filtered listing returns everything
+        # it matched. An unfiltered listing still truncates — that one is a
+        # "show me the vault" convenience, not an inventory of a known set.
+        results = candidates if (tag or note_type) else candidates[:top_k]
 
     # Attach body if requested, then strip the internal helper key. The body is
     # frontmatter-stripped (matching `note show`) so downstream skills get clean
@@ -410,7 +415,18 @@ def search_cmd(
                 item["body"] = ""
         clean.append(item)
 
-    data = {"results": clean, "count": len(clean), "query": query, "tag": tag, "type": note_type}
+    data = {
+        "results": clean,
+        "count": len(clean),
+        # Pre-truncation match count. `count` is what came back; `total_matched`
+        # is what existed. When they differ the caller is looking at a slice and
+        # has to know it — an agent that sizes a fan-out off a truncated count
+        # under-reads the corpus and never finds out.
+        "total_matched": len(candidates),
+        "query": query,
+        "tag": tag,
+        "type": note_type,
+    }
     if include_body and any_fenced:
         # Preamble ONCE for the whole payload, not per body — see wrap_untrusted.
         from bad_research.quality.injection import INJECTION_PREAMBLE

@@ -44,6 +44,7 @@ from bad_research.retrieval.fusion import (
     rrf_merge,
     three_tier_fuse,
 )
+from bad_research.retrieval.rerank import RerankUnavailable
 
 # ── E6 — cascade-proxy relevance gate (ENHANCEMENT_PLAN E6, P2) ──────────────
 # Pattern: Snowflake cascade rerank (DEEPLEARNINGAI.md A12, 20-500% speedup,
@@ -302,12 +303,24 @@ class RetrievalEngine:
         # score, and an out-of-range value would both inflate finals past 1.0 and let
         # a doc the bound auto-dropped re-pass the gate (a losslessness break).
         rer: dict[int, float] = {}
+        rerank_unavailable = False
         if uncertain:
             unc_docs = [self._meta[cand_ids[r0]].chunk.text for r0 in uncertain]
-            local_scores = dict(self.reranker.rerank(query, unc_docs))  # local idx → score
+            try:
+                local_scores = dict(self.reranker.rerank(query, unc_docs))  # local idx → score
+            except RerankUnavailable:
+                # No reranker opinion exists. Rank the uncertain band on `initial`
+                # alone and do NOT gate it: the gate tests a fused score, and a
+                # fused score built from an absent reranker is not evidence that a
+                # candidate is irrelevant. Gating on it drops the entire band and
+                # returns an empty result set that is indistinguishable from
+                # "nothing matched".
+                rerank_unavailable = True
+                local_scores = {}
             rer = {uncertain[li]: max(0.0, min(1.0, float(s)))
                    for li, s in local_scores.items()}
-        self.last_reranked_count = len(uncertain)
+        self.last_reranked_count = 0 if rerank_unavailable else len(uncertain)
+        self.last_rerank_unavailable = rerank_unavailable
 
         survivors: list[Chunk] = []
         # Auto-kept docs: score at their no-rerank FLOOR (reranker_score=0.0) — the
@@ -329,7 +342,7 @@ class RetrievalEngine:
             reranker_score = rer.get(rank0, 0.0)
             fused = three_tier_fuse(initial, reranker_score, rank)
             fused = apply_source_type_weight(fused, self._meta[cid].content_type)
-            if fused >= self.gate:
+            if rerank_unavailable or fused >= self.gate:
                 c = self._meta[cid].chunk
                 survivors.append(Chunk(chunk_id=c.chunk_id, note_id=c.note_id, text=c.text,
                                        char_start=c.char_start, char_end=c.char_end,

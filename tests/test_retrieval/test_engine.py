@@ -278,3 +278,59 @@ def test_expand_symbols_pulls_wiki_link_neighbors(tmp_path, stub_links_db):
     neighbors = eng._expand_symbols("a")
     # b's chunk ids are pulled in as widening candidates (outlink a→b).
     assert any(eng._meta[cid].chunk.note_id == "b" for cid in neighbors)
+
+
+class _UnavailableReranker:
+    """A reranker with no host model behind it — the shipped keyless situation
+    whenever the host LLM is unreachable or unconfigured."""
+
+    def rerank(self, query, docs):
+        from bad_research.retrieval.rerank import RerankUnavailable
+
+        raise RerankUnavailable("no host model")
+
+
+def _graded_corpus():
+    """Six notes whose query-term density falls off linearly, so min-max BM25 spreads
+    them across the cascade's auto-keep / uncertain / auto-drop bands instead of all
+    landing at the top of a one-doc lane. Verified to put 3 docs in the `uncertain`
+    band — the band the bug ate. A regression test that never populates it passes
+    vacuously, which is how the original defect shipped with a green suite."""
+    return [
+        _note(chr(97 + i),
+              f"# {i}\n\npython concurrency " + ("asyncio " * (6 - i))
+              + ("unrelated " * i) + "\n")
+        for i in range(6)
+    ]
+
+
+def test_rerank_unavailable_degrades_to_initial_order_not_empty(tmp_path):
+    # REGRESSION. When the reranker cannot form an opinion, the engine must fall back
+    # to initial (BM25) ranking and return the candidates it found. It must NOT treat
+    # the absent opinion as a 0.0 score: three_tier_fuse blends that into the final
+    # that RELEVANCE_GATE tests, and at w=0.60 an uncertain doc would need an initial
+    # score above 1.0 to survive — so the whole uncertain band vanished and `search()`
+    # returned [], indistinguishable from "nothing in the corpus matched".
+    eng = RetrievalEngine(cache_db=tmp_path / "cache.db", reranker=_UnavailableReranker())
+    eng.index(_graded_corpus())
+    hits = eng.search("python concurrency asyncio", mode="full", top_k=10)
+
+    assert eng.last_rerank_unavailable is True, (
+        "this corpus must reach the reranker, or the test passes vacuously"
+    )
+    assert hits, "an unavailable reranker must not empty the result set"
+    # The uncertain band survives rather than being gated away on a phantom score.
+    assert len(hits) >= 3
+    # Scores stay ordered — the fallback ranks, it does not shuffle.
+    assert [h.score for h in hits] == sorted((h.score for h in hits), reverse=True)
+
+
+def test_working_reranker_still_gates(tmp_path):
+    # The control. With a reranker that DOES have an opinion the gate stays live, so
+    # the fix above cannot have bought its non-empty result by disabling the gate.
+    eng = RetrievalEngine(cache_db=tmp_path / "cache.db",
+                          reranker=ClaudeCodeReranker(llm=_RubricLLM()))
+    eng.index(_graded_corpus())
+    eng.search("python concurrency asyncio", mode="full", top_k=10)
+    assert eng.last_rerank_unavailable is False
+    assert eng.last_reranked_count > 0
