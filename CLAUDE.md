@@ -1,0 +1,1 @@
+badresearch — a keyless deep-research agent that runs as a Claude Code skill (16-step pipeline, every sentence bound to a source), published to PyPI as `bad-research`. OWN: my project, `t1mdurden/badresearch`.
