@@ -37,6 +37,7 @@ def _run(tmp_path, *args):
 
 @pytest.mark.parametrize("args", [
     ("absence-gate", "--report", "{report}", "--json"),
+    ("verdict-gate", "{report}", "--json"),
     ("no-source-claim-gate", "--report", "{report}", "--notes", "{notes}", "--json"),
     ("quote-drift-gate", "--report", "{report}", "--note-bodies", "{notes}", "--json"),
     ("figure-support-gate", "--report", "{report}", "--note-bodies", "{notes}", "--json"),

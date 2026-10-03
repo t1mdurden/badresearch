@@ -224,3 +224,33 @@ def absence_gate_cmd(
         typer.echo(f"\n  {r.caveat}")
     if not r.ok:
         raise typer.Exit(code=1)
+
+
+def verdict_gate_cmd(
+    path: Path | None = typer.Argument(None, help="Path to the answer markdown."),
+    report: Path | None = typer.Option(None, "--report", help="Same as PATH, for parity with the sibling gates."),
+    json_out: bool = typer.Option(False, "--json", "-j"),
+) -> None:
+    """Refuse an answer whose first prose line is not a verdict of at most 15 words, or that
+    never says what would overturn its conclusion.
+
+    Form only, never fact: a short verdict can still be wrong. Exit 1 with one line per
+    finding, 0 when clean, 2 when no path was given.
+    """
+    from bad_research.checks.verdict_first import check_verdict_first
+
+    target = path or report
+    if target is None:
+        typer.echo("verdict-gate: give the answer path (bad verdict-gate <path>)", err=True)
+        raise typer.Exit(code=2)
+    r = check_verdict_first(target.read_text(encoding="utf-8"))
+    if json_out:
+        typer.echo(json.dumps(r.to_dict(), indent=2, ensure_ascii=False))
+    else:
+        for f in r.findings:
+            where = f"L{f.line}: " if f.line else ""
+            typer.echo(f"verdict-gate: {f.kind} | {where}{f.message}")
+        if r.ok:
+            typer.echo(f"verdict-gate: ok | L{r.verdict_line}: {r.verdict[:80]}")
+    if not r.ok:
+        raise typer.Exit(code=1)

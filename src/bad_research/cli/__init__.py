@@ -138,6 +138,10 @@ from bad_research.cli.checks import absence_gate_cmd as _absence_cmd
 
 app.command("absence-gate")(_absence_cmd)
 
+from bad_research.cli.checks import verdict_gate_cmd as _verdict_cmd
+
+app.command("verdict-gate")(_verdict_cmd)
+
 from bad_research.cli.coverage_cmds import coverage_cmd as _coverage_cmd
 
 app.command("coverage")(_coverage_cmd)
