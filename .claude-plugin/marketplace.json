@@ -9,7 +9,7 @@
       "name": "bad-research",
       "source": "./plugins/bad-research",
       "category": "research",
-      "description": "Deep, multi-source, fully-cited research. Tier-adaptive: a bounded question gets a fast cited answer; a broad or contested one gets the full adversarially-reviewed report with every claim bound to a source. Prompt skills + 17 agents load instantly; the Python `bad` engine self-bootstraps on first use (needs Python 3.11-3.13 and uv or pipx)."
+      "description": "Deep, fully-cited research that works in rounds: a broad pass maps the question, then deeper passes chase what it found, with parallel research-reader agents exchanging through one written map, a fresh-context critic pass, and every claim bound to a source. The Python `bad` engine self-bootstraps on first use (needs Python 3.11-3.13 and uv or pipx)."
     }
   ]
 }

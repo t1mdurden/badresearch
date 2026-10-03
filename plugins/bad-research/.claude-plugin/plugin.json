@@ -2,8 +2,8 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "bad-research",
   "displayName": "Bad Research",
-  "version": "0.3.2",
-  "description": "Deep, multi-source, fully-cited research. Tier-adaptive: a bounded question gets a fast cited answer; a broad or contested one gets the full adversarially-reviewed report with every claim bound to a source. Prompt skills + 17 agents load instantly; the Python `bad` deep-research engine self-bootstraps on first use.",
+  "version": "0.4.0",
+  "description": "Deep, fully-cited research that works in rounds: a broad pass maps the question, then deeper passes chase what it found, with parallel research-reader agents exchanging through one written map, a fresh-context critic pass, and every claim bound to a source. The Python `bad` engine self-bootstraps on first use.",
   "author": {
     "name": "LeventySeven (Bad Research)",
     "url": "https://github.com/LeventySeven/badresearch"

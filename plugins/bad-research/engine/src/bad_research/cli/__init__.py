@@ -109,4 +109,53 @@ app.command("export")(_export_cmd)
 app.command("grounding-surface")(_grounding_surface_cmd)
 app.command("grounding-recall")(_grounding_recall_cmd)
 
+# ── local-corpus lane (research rebuild, slice 1) ─────────────────────────────
+from bad_research.cli.lanes import lane_local_cmd as _lane_local_cmd
+
+app.command("lane-local")(_lane_local_cmd)
+
+from bad_research.cli.frontier_cmds import frontier_gate_cmd, frontier_observe_cmd
+
+app.command("frontier-gate")(frontier_gate_cmd)
+app.command("frontier-observe")(frontier_observe_cmd)
+
+from bad_research.cli.close_gate_cmds import close_gate_cmd
+
+app.command("close-gate")(close_gate_cmd)
+
+# ── deterministic report checks (research rebuild, slice 1) ───────────────────
+from bad_research.cli.checks import no_source_claim_gate_cmd as _no_source_claim_cmd
+from bad_research.cli.checks import quote_drift_gate_cmd as _quote_drift_cmd
+
+app.command("no-source-claim-gate")(_no_source_claim_cmd)
+app.command("quote-drift-gate")(_quote_drift_cmd)
+
+from bad_research.cli.checks import figure_support_gate_cmd as _figure_support_cmd
+
+app.command("figure-support-gate")(_figure_support_cmd)
+
+from bad_research.cli.checks import absence_gate_cmd as _absence_cmd
+
+app.command("absence-gate")(_absence_cmd)
+
+from bad_research.cli.checks import verdict_gate_cmd as _verdict_cmd
+
+app.command("verdict-gate")(_verdict_cmd)
+
+from bad_research.cli.coverage_cmds import coverage_cmd as _coverage_cmd
+
+app.command("coverage")(_coverage_cmd)
+
+from bad_research.cli.discriminate_cmds import discriminate_cmd as _discriminate_cmd
+
+app.command("discriminate")(_discriminate_cmd)
+
+from bad_research.cli.discriminate_cmds import screening_stop_cmd as _screening_stop_cmd
+
+app.command("screening-stop")(_screening_stop_cmd)
+
+from bad_research.cli.discriminate_cmds import cascade_cmd as _cascade_cmd
+
+app.command("cascade")(_cascade_cmd)
+
 __all__ = ["app"]
