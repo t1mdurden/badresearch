@@ -42,10 +42,16 @@ writes outside the formal channel, and what you can run yourself. Start the
 span, its source and how it was reached), the frontier, connections and contradictions, dead ends, the
 sources already seen, and your hypotheses. Template and rules: `references/rounds.md`. Register the
 open questions with `--promise` on the first `bad frontier-observe`, so the counter knows what is owed.
+If a bare `bad` is not on PATH, run `${CLAUDE_PLUGIN_ROOT}/bin/bad` (the plugin's self-installing launcher).
+
+**MUST know what the answer is for before the broad round.** If the request does not say what the asker will
+do with it (the decision or action it feeds), ask exactly ONE `AskUserQuestion`: two to four concrete uses
+inferred from the request and the working directory, own answer allowed; start no round until it is answered.
+No `AskUserQuestion` (`claude -p`): write the assumed use as line one of `MAP.md` and of the answer, as a heading (`# Assumed use: …`) so the verdict still opens the prose.
 
 **Broad round — find the structure, not the answer.** Three to six readers in parallel (the
-`research-reader` agent, `agents/research-reader.md`), each on a lane of a different *kind* of source —
-the lane files under "Where to look" are the kinds — with disjoint boundaries, first queries chosen to
+`research-reader` agent, `agents/research-reader.md`; plugin type `bad-research:research-reader`), each on a
+lane of a different *kind* of source — the lane files under "Where to look" are the kinds — with disjoint boundaries, first queries chosen to
 differ, and the path of its lane file in its brief so it reads the recipe first. In every lane, at least one entry point that
 is not ordered by popularity. The plain, obvious search runs first even when you hold a hypothesis.
 **Browse as well as search** — a venue's recent tables of contents, a conference's accepted list, a
@@ -83,7 +89,7 @@ different lane. Past six rounds, stop anyway and report what is still open: that
 finding. **Write** from the map, verifying every finding the answer leans on. **Critique** in fresh
 context, **patch** surgically, **answer**.
 
-## Choose the tier, and say it in one line at the top of the answer
+## Choose the tier, and say it in one line under the verdict
 
 - **Answer from what you have** — you know it and being wrong is cheap. Never for a sentence carrying a
   version, price, quota, limit, date or proper name: those move, and your confidence is not evidence.
@@ -289,7 +295,7 @@ Run the deterministic ones on everything. Each is the executing form of a rule a
 worth roughly 7% on a post-trained model while a non-zero exit is worth what it says:
 
 ```bash
-which bad || echo "not on PATH — try .venv/bin/bad, or skip the CLI checks and say so"
+which bad || echo "not on PATH — use \${CLAUDE_PLUGIN_ROOT}/bin/bad, or .venv/bin/bad, or skip the CLI checks and say so"
 bad lane-local "<query>" --json          # a lane that reports its own zeros
 bad frontier-gate --state s.json --query "<q>"     # refuses a query naming no frontier item
 bad frontier-observe --state s.json --floor 2 --patience 1 --domains … --entities … --promise … --close … --abandon "Q=why"  # --floor/--patience: standard/deep only
@@ -299,6 +305,7 @@ bad figure-support-gate --report r.md --note-bodies n.json  # a cited figure IS 
 bad no-source-claim-gate --report r.md --notes n.json       # "no source was found" is checked
 bad absence-gate --report r.md                             # an absence claim that says where you looked
 bad uncited-gate  --report r.md --vault-tag run            # every factual sentence carries a span
+bad verdict-gate answer.md      # line one is a verdict of at most 15 words; a "what would overturn it" line exists
 bash scripts/lane-probes.sh    # relative to THIS skill's dir — cd there, or give the full path
 ```
 
@@ -320,7 +327,8 @@ must never look the same in your report.**
 `references/critique.md`. The draft is read by something that did not write it, in fresh context,
 through lenses chosen not to overlap — instruction, assumption, dialectic, width, depth — and the
 findings come back to you to patch surgically, never to regenerate. A gap gets a fetch, not a hedge.
-Stop at three rounds.
+Stop at three rounds. Critics: `research-critic`, one per lens (plugin type `bad-research:research-critic`);
+`research-adjudicator` (`bad-research:research-adjudicator`) ranks a finished answer's claims for triage, never a pass.
 
 ## What this skill refuses
 
@@ -346,12 +354,14 @@ loop with named moves, not a form — and each lane and reference is read at the
 
 ## The answer
 
-Say what you concluded and why. Lead with the claim, not the journey: the top line is the tier and why
-the question needed it, never the effort (rounds, readers, critics, sources opened). **Write for what the asker will
-do**: if they will act on it, end with the steps they can run — the commands, queries and settings —
-each tied to the finding it rests on. Give the number with its
-assumption, the recommendation with what would change it, and the disagreement with both sides. Put what
-you could not establish in its own section — often the most useful thing on the page.
+Say what you concluded and why. **Line one is the verdict — at most 15 words, answering the question as
+asked.** Line two is the tier and why the question needed it, never the effort (rounds, readers, critics,
+sources opened). **Write for what the asker will do**: if they will act on it, end with the steps they can
+run — the commands, queries and settings — each tied to the finding it rests on. Give the number with its
+assumption, the recommendation with what would change it, and the disagreement with both sides; one line
+reads *"Что перевернёт вывод: …"* (in English, *"What would overturn this: …"*). Put what you could not
+establish in its own section — often the most useful thing on the page.
+**MUST run `bad verdict-gate <answer.md>` on the written answer before presenting it; fix until exit 0.**
 
 **The map, the lane inventory and the check results are RUN NOTES, not the answer.** The reader is owed
 only what changes what they should believe: an absence that bounds the claim, a blocked lane that

@@ -15,6 +15,7 @@ already been beaten. Read it when a check comes back clean and you are deciding 
 | `figure-support-gate` | every cited figure appears in the note cited | the prose half — it reports that count as `unchecked` |
 | `uncited-gate` | every factual sentence carries a marker | **that the marker's target supports it** |
 | `recitation-gate` | you paraphrased rather than copied | how much paraphrase is too much |
+| `verdict-gate` | the first prose line is a verdict of at most 15 words, and some line names what would overturn it | that the verdict is right, or that the overturn condition is the one that matters |
 
 ## The three rules that decide how to read a result
 
