@@ -1,0 +1,468 @@
+{
+  "ask": "check desktop/badresearch. Now analyze this whole folder and whole skills first. I think maybe we should somehow make it simpler if it's needed, because I think it's a lot overcomplicated for now. And also, when we are using this research skill, sometimes a lot of things that does not work. For example, step-by-step skills \u2014 they're not working, and coding agents have to read them manually and not invoke it. So it's first error. And second, I think we should revamp it fully. So don't skimp... Because quality is a priority... make agents and coging agentic cli's SOTA at any kind of research... use ALL our channels, ALL our top sources, videos, podcasts, transcripts, articles, researches, guides, workflows, pipelines from goated people, engineers, researchers at top companies, startups, research labs. also use desktop/researchfms teardowns all at the same time via multiple agents per source. graphs are only similarity/intuintion",
+  "baseline": {
+    "what": "A plain Claude Code session with WebSearch/WebFetch and a demanding prompt.",
+    "measured": "17 minutes, 5,930 words, 35 sources actually fetched, explicit counter-case section, honest 'what I could not establish'. Beat badresearch's fast route 3-0 on three blind-judge lenses INCLUDING accretion. It also performed a real multi-hop correction the pipeline did not: took a vendor's published formula, applied it to that vendor's own table, found every row understated 10x, and propagated the correction until the vendor's headline conclusion flipped.",
+    "consequence": "This baseline is the bar. Any slice whose capability the plain session already reaches is DELETED, not built. The slices below are exactly the deltas it provably cannot reach."
+  },
+  "slices": [
+    {
+      "id": "S1",
+      "capability": "I type /research <question> in any project and get a cited answer that used MY local corpus \u2014 the 407 teardowns, 41 transcripts, 190 articles, 100 x-guides that no web agent can reach.",
+      "check": "Run it on a question whose answer exists ONLY in the local corpus AND is not spelled out in any lane recipe: 'Does iterative retrieval beat a single well-formed expansion, and what numbers back it?' (answer lives in researchfms/AGENTIC_SEARCH_SPEC.md; verified absent from skills/). PASS = the answer cites a real path:line that `sed -n` reproduces.",
+      "unknown": "Whether one skill file can carry route + gate + lane pointers in under 250 lines without regressing to the process-scaffolding shape that measured -8.4 to -27.4pp.",
+      "confidence": 0.9,
+      "shape": "One SKILL.md + references/lanes/*.md read on demand. Anthropic's own contract: bundled files are level three, read as needed; 'when the SKILL.md file becomes unwieldy, split its content into separate files and reference them.'",
+      "trap": "The skill's description competes in a shared listing budget measured live at 40,139 chars across 109 skills. A dropped description reads as a skill that does not work \u2014 indistinguishable from the bug we just fixed.",
+      "delete": [
+        "the 21-skill chain",
+        "the Skill() step-indirection",
+        "the entry skill's 448-line dispatch table",
+        "the 8-piece subagent spawn contract",
+        "the recovery-artifact table"
+      ],
+      "rows": [
+        {
+          "id": "S1-1",
+          "does": "skills/research/SKILL.md exists, <=250 lines, description <=500 chars",
+          "status": "passed",
+          "evidence": "passed \u2014 173 lines / 446-char description; tests/test_skills/test_research_skill_shape.py. CAVEAT: I authored the file and wrote its size/description assertions afterwards, so those two never went red first. The lane-reference assertion DID go red for the right reason (5 missing lane files) and is the honest check here."
+        },
+        {
+          "id": "S1-2",
+          "does": "`bad lane-local \"<query>\"` returns real path:line hits from the flat teardown glob",
+          "status": "passed",
+          "evidence": "passed \u2014 driven as a user: `bad lane-local \"ZS Associates\"` -> TRANSCRIPTS_AI_AGENT_SYSTEMS.md:6884, and `sed -n '6884p'` reproduces the cited line exactly."
+        },
+        {
+          "id": "S1-3",
+          "does": "the lane emits an enumeration line even when it selects 0 \u2014 a zero is reported, never silent",
+          "status": "passed",
+          "evidence": "passed \u2014 `bad lane-local \"zzz-no-such-term-zzz\"` returns selected 0 AND still prints `local-corpus | files listed 714 | candidates selected 0 | cut line ...`."
+        },
+        {
+          "id": "S1-4",
+          "does": "the lane never recurses (36k files live under teardowns/; -r ranks vendored source above breakdowns)",
+          "status": "passed",
+          "evidence": "passed \u2014 measured: flat glob sees 407 .md under teardowns/, recursive would see 2101; the lane listed 407."
+        },
+        {
+          "id": "S1-5",
+          "does": "every `bad <cmd>` the skill names resolves against the live Typer app",
+          "status": "passed",
+          "evidence": "passed \u2014 `bad lane-local --help` resolves; the skill names only lane-local, uncited-gate, recitation-gate and all three are in the live Typer app."
+        },
+        {
+          "id": "S1-6",
+          "does": "END TO END: /research on the corpus-only question returns an answer citing a reproducible teardown path:line",
+          "status": "passed",
+          "is_check": true,
+          "evidence": "passed \u2014 uncontaminated cold-use run by an agent that had never seen this session. Contamination check done by the agent itself: grep over ~/.claude/skills/research/ for the answer's specifics (adaptive-rag|IRCoT|68.8|39.80|oracle router) returns 0 hits; I re-ran it and confirm 0. It invoked Skill(research) cleanly, read local-corpus.md and web-live.md, reproduced the reachability probe digit-for-digit (407/41/190/67), ran `bad lane-local` as documented, and cited AGENTIC_SEARCH_SPEC.md:169 \u2014 which `sed -n '169p'` reproduces exactly. BEYOND THE CHECK: it then verified the corpus's own citations against the primary PDFs and found TWO defects in AGENTIC_SEARCH_SPEC.md that this session had repeated as fact. Asked whether the skill changed the outcome it said yes, concretely: without the frontier and contradiction rules the natural stopping point was 'found a pre-synthesized answer with citations, done', which would have shipped both defects."
+        }
+      ],
+      "check_original": "Run it on a question whose answer exists ONLY in the local corpus (e.g. 'what did ZS Associates conclude about multi-agent research pipelines, and what did they replace it with?' \u2014 that is in researchfms/teardowns, not on the open web in that form). PASS = the answer cites a real teardown file with a line number that `sed -n` can reproduce. FAIL-SHAPE = a plain Claude+WebSearch session cannot answer it at all, which is the point.",
+      "check_revision_reason": "The original check used the ZS Associates question, and I then had the lane-recipe agent use that SAME question as local-corpus.md's worked example \u2014 so the file handed the answer to the reader. The cold-use agent caught this itself and said part 1 was untestable in a blind sense. Revised BEFORE any row was flipped on it, not after a failure."
+    },
+    {
+      "id": "S2",
+      "capability": "The loop asks a question it could only have asked after reading something \u2014 and refuses one it could have asked at the start.",
+      "check": "On one real run, count the queries issued after wave 1 that contain a term which first appeared in a FETCHED DOCUMENT rather than in the user's prompt or the initial decomposition. PASS = that count is > 0 and the run log names which frontier item each query hit. If it is zero, the owner's thesis is unimplemented and this slice did not ship, whatever the tests say.",
+      "unknown": "What a frontier item actually looks like when a real reader produces it \u2014 the gate already fails on long multi-token items, and nothing produces items yet.",
+      "confidence": 0.65,
+      "shape": "Extract entities/quantities absent from the question after each read; every subsequent query must name one. Harness computes new-domain/new-entity deltas BEFORE the prompt is built so the stop is auditable even if the model lies.",
+      "trap": "Subset containment is order-insensitive and non-contiguous, so a long contradiction string is unnameable in practice while a common-word item can be named incidentally. The producer's item FORMAT decides whether the gate is real.",
+      "delete": [
+        "the fixed step-1 decomposition that freezes the query set before any evidence exists",
+        "coverage-driven re-fetch against pre-declared atomic items"
+      ],
+      "rows": [
+        {
+          "id": "S2-1",
+          "does": "a reader returns {findings, verbatim spans, reachability} and never reasoning",
+          "status": "passed",
+          "evidence": "passed \u2014 agents/research-reader.md installed to ~/.claude/agents/. Contract: returns findings + verbatim spans + a 4-state reachability outcome + frontier candidates; explicitly forbids conclusions, recommendations, paraphrase-as-quote and silent failure. It is also the frontier PRODUCER S2-2 needs."
+        },
+        {
+          "id": "S2-2",
+          "does": "a producer extracts frontier items from a real fetched body",
+          "status": "passed",
+          "evidence": "passed \u2014 RED first (ImportError: extract_frontier_items). Producer emits entities, named methods, arXiv ids and referent-carrying figures present in a body and absent from the question, preferring the longest form as the more diagnostic cue. Driven on a real 326,123-char corpus document fetched through `bad lane-local`. DEFECT FOUND AND FIXED BY THE END-TO-END DRIVE: the first version matched any decimal and produced 348 items dominated by raw floats ('0.069180676288051') \u2014 a frontier that large is nameable by accident, which disables the gate quietly. Tightened to require a referent (money/percent/arXiv/number+unit); 208 items on the same body. Also fixed a real artifact the drive exposed: a sentence-initial preposition was being captured into the entity ('On Natural Questions')."
+        },
+        {
+          "id": "S2-3",
+          "does": "gate_query has a production caller and refuses a re-phrase in a live run",
+          "status": "passed",
+          "evidence": "passed \u2014 RED first (ImportError: cannot import name 'FrontierState'). gate_query now has a real production caller: FrontierState.gate_and_log at frontier.py:109, reached from the CLI `bad frontier-gate`. DRIVEN AS A USER on a live state file: query 1 'does iterating beat one expansion' -> allow (first, exempt), exit 0; query 2 'is it better to search more times' -> REFUSE, exit 1, names no frontier item; query 3 'Adaptive-RAG oracle router step count' -> allow, exit 0, names ['Adaptive-RAG','oracle router']. The refusal is enforced by a non-zero exit, not by advice."
+        },
+        {
+          "id": "S2-4",
+          "does": "stop counters are computed in code before the prompt; the model never self-reports diminishing returns",
+          "status": "passed",
+          "evidence": "passed \u2014 RED first: 5 of 6 tests failed, incl. 'StopCounters is defined but called from nowhere in src/'. Wired into FrontierState.observe_round (frontier.py:116) and exposed as `bad frontier-observe`. DRIVEN AS A USER: round 1 +3 domains/+2 entities -> continue; round 2 +1/+1 -> continue; round 3 +0/+0 -> STOP. The signal is computed from set differences before the next prompt is built and persisted per-round in the state file, so the stop is auditable from the run's own counters rather than from the model's account of its diminishing returns \u2014 every stopping rule surveyed for this rebuild was absent, a hand-picked constant, or a convergence check that could never fire."
+        },
+        {
+          "id": "S2-5",
+          "does": "the run log names, per query, which frontier item it hit",
+          "status": "passed",
+          "evidence": "passed \u2014 the same run's log records, per query, allowed/refused AND which frontier item was named: [] for the exempt first query, [] for the refused re-phrase, ['Adaptive-RAG','oracle router'] for the accreting one. That log is the artifact S2-6's end-to-end count reads, so accretion is auditable from the run's own counters rather than from the model's account of how well it did."
+        },
+        {
+          "id": "S2-6",
+          "does": "END TO END: post-wave-1 queries containing a term first seen in a fetched doc, counted, > 0",
+          "status": "passed",
+          "is_check": true,
+          "evidence": "passed \u2014 the count came back >0 on a genuine end-to-end drive, and its FIRST run came back 0, which is the check working. That zero exposed two things: the producer's number over-emission (fixed above) and a badly built drive of my own \u2014 I read one document then asked follow-ups about content in a different one, measuring my scripting rather than the loop. Rebuilt so the follow-ups are derived FROM the extracted items. Result: 2 post-wave-1 queries allowed and naming terms first seen in the fetched doc ('Adaptive Evolutionary Framework', 'Better Code Retrieval'); the deliberate re-phrase control was refused. NOTE the lane query also had to be widened from 0 hits to 3 \u2014 the skill's own start-wide-then-narrow rule firing on me."
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "capability": "It tells me when two sources disagree, and will not finish while a load-bearing disagreement is unresolved.",
+      "check": "Adversarial probe, not a happy path: seed a question where two reachable sources give conflicting numbers. PASS = the run surfaces the contradiction as an open item, refuses to close while it is open, and the final answer keeps BOTH with provenance rather than silently picking one.",
+      "unknown": "Whether the run can tell a load-bearing contradiction from a cosmetic one without manufacturing conflicts to keep searching.",
+      "confidence": 0.65,
+      "shape": "A contradiction between S1 and S2 on claim C is a first-class frontier item; the run cannot close while one is open. Keep both with provenance; resolve or rank BEFORE the spans reach the model, because injecting one unreconciled conflict measured 30 minutes of pondering and a collapse mode.",
+      "trap": "Uncapped, the agent manufactures conflicts to keep searching. DRNOISE also measures the opposite failure: one seeded plausible-but-false document causes 66-88 point accuracy drops, and 'generic verification prompts reduce but do not close this gap' \u2014 so it cannot be prose.  KNOWN LIMIT, measured not assumed: 'load-bearing' is a substring test on the subject, so a draft that paraphrases the subject ('H100 hourly rate' where the claim said 'H100 on-demand') files a real disagreement as cosmetic and the gate goes quiet. Fuzzy matching would close that and open a worse one \u2014 blocking closes over pairs that are not the same thing \u2014 and a check that cries wolf gets switched off. The gate is a floor, never a proof that nothing was missed.",
+      "delete": [
+        "4 separate disagreement passes (step 4.0 contradiction graph, 6 cross-locus, 6.5 orphan scan, 12 dialectic critic)"
+      ],
+      "rows": [
+        {
+          "id": "S3-1",
+          "does": "contradiction detection pairs claims mechanically (same target, opposing stance / same entities, opposite conclusion / same scope, different numbers)",
+          "status": "passed",
+          "evidence": "passed \u2014 driven by me: real disagreement (2.49 vs 6.31 usd/hr, different sources) -> 1 contradiction; identical values -> 0; different units (usd/hr vs usd/month) -> 0, so a different measurement is not treated as a disagreement; same source disagreeing with itself -> 0."
+        },
+        {
+          "id": "S3-2",
+          "does": "an open contradiction blocks close, and the cap prevents manufacturing",
+          "status": "passed",
+          "evidence": "passed \u2014 driven by me at the CLI. An undisposed load-bearing disagreement exits 1 with the reason naming both sides; a disposition carrying an empty `because` still exits 1. Load-bearing is COMPUTED (the subject appears in the draft), never judged, which is also the anti-manufacture guard: a conflict the draft never raises is filed cosmetic and blocks nothing (drive: an egress answer against a seeded GPU-price conflict -> exit 0, 1 cosmetic, 0 blockers). The cap is separately non-silent \u2014 17 seeded pairs -> 12 returned, suppressed=5, total_found=17."
+        },
+        {
+          "id": "S3-3",
+          "does": "both sides survive into the output with provenance and dual dating",
+          "status": "passed",
+          "evidence": "passed \u2014 driven by me. Ranking a side does NOT license dropping it: with a valid `ranked` disposition, a draft naming only the winner exited 1 with 6 blockers \u2014 the losing value, both source strings, and both as-of dates. Value matching is numeric, not substring, so $2.49/hr and 2.490 match while the 2.49 inside 12.49 does not. Dates are demanded only where the claim carries one."
+        },
+        {
+          "id": "S3-4",
+          "does": "END TO END: seeded conflicting-number question surfaces the conflict and refuses to close",
+          "status": "passed",
+          "is_check": true,
+          "evidence": "passed \u2014 END TO END on a REAL corpus discrepancy, not a fixture. Verified the numbers myself first: AGENTIC_SEARCH_SPEC.md:180 (Adaptive-RAG table) gives Natural Questions one-step 32.40 vs multi-step 35.60 \u2014 multi-step wins \u2014 while :183 prose says iterating 'loses to one retrieval' on all three single-hop sets. Four drives: (1) conflict surfaced, no disposition -> exit 1; (2) ranked but the draft drops the losing side -> exit 1, 6 blockers; (3) both sides with provenance and dating -> exit 0; (4) the honest caveat shown rather than asserted \u2014 relabel both sides with one identical source string and the count drops to 0, because an intra-document inconsistency is a drafting problem by design and this gate is blind to it."
+        }
+      ]
+    },
+    {
+      "id": "S4",
+      "capability": "It refuses to ship a claim it cannot back, and the refusal is a script I can run myself.",
+      "check": "Planted-defect, adversarial: take a finished report and (a) swap a cited note's body for a paraphrase supporting a different number, (b) insert a sentence asserting 'no source was found for X' where a cited note contains X. PASS = each check exits non-zero. A check nobody has watched go red is not evidence.",
+      "unknown": "Whether byte-identity can be made non-vacuous on the standalone path, where anchors are currently bound to the whole note body so Tier A reduces to body==body.",
+      "confidence": 0.65,
+      "shape": "Lead with STRUCTURE \u2014 a resolved id and a content hash are exact. Treat the semantic judge as a filter that ranks, never a gate that closes: on ExpertQA every system lands 55.2-60.0 BAcc, and a ~60-BAcc instrument cannot distinguish a 0.1% system from a 2% one.",
+      "trap": "AstaBench's Faker fabricates everything, does no research, and scores 39.2 on E2E-Bench for $0.026 \u2014 beating ReAct/gpt-5 at 30.0. Report-shaped output passes judges, so any check that grades SHAPE rewards fabrication.",
+      "delete": [
+        "5 critics + grader stub + fresh-reviewer + patcher + polish auditor",
+        "the readability stage measured adding 0 citations in 19 minutes"
+      ],
+      "rows": [
+        {
+          "id": "S4-1",
+          "does": "no-source-claim check: asserts every absence claim against the note store, exits 1 on a false one",
+          "status": "passed",
+          "evidence": "passed \u2014 driven by me, not by its own tests. Planted the exact false claim a live run shipped ('No source was found for GPU depreciation schedules or datacenter PUE' against a note containing a 36-month schedule and PUE 1.2): 1 finding, CLI exit 1. Same report against a genuinely silent corpus: 0 findings, exit 0. It goes red for the right reason and does not fire on valid input."
+        },
+        {
+          "id": "S4-2",
+          "does": "byte-identity is non-vacuous \u2014 anchors bind to a located span, not the whole body",
+          "status": "passed",
+          "evidence": "passed \u2014 RED first: the test imported is_vacuous_span and failed with ImportError. Added is_vacuous_span to grounding/anchors.py; verifier.py now SKIPS Tier A on a whole-body anchor instead of crediting it (refusing it outright is what scored 111/111 unsupported on a live run). Driven on the real preserved fixture: a whole-body anchor over a 3,148-char note reports vacuous=True; a 97-char located span from the real claims file reports vacuous=False. build_from_claims DROPS an unlocatable quote \u2014 verified on both a paraphrase and a wrong-number variant. SELF-CAUGHT: my first version of the verifier test was a source grep and passed GREEN while is_vacuous_span was called but never imported \u2014 a NameError waiting for the first vacuous anchor. Replaced with a test that resolves the symbol at runtime."
+        },
+        {
+          "id": "S4-3",
+          "does": "one adjudicator, one rubric, reading ONLY the artifact; isolation enforced by tool allowlist",
+          "status": "passed",
+          "evidence": "passed \u2014 spawned for real once the turn boundary let the agent type resolve. ISOLATION ENFORCED, on two independent signals: the agent reported its function schema held exactly one tool ('no Grep, Glob, Bash, Write, Edit, WebFetch, WebSearch, or Task') \u2014 that half is self-report \u2014 and the HARNESS's own usage counter independently recorded tool_uses=1, a single Read of the artifact path it was handed. ATTEMPTED-AND-BLOCKED: none. It also noted an MCP instruction block reached its context while no MCP tools were callable, which is the distinction the row is about: what a prompt mentions is not what an allowlist grants. ONE RUBRIC, NO CERTIFICATION: 19 rows, riskiest first, each with a band and a settle-by line, and no APPROVED / score / pass-fail anywhere. It closed with the mandated NOT RANKABLE line, naming precisely what one file cannot settle ('whether any cited span actually contains its claim... five verbatim quotes appear in this document and I could not check a single one'). It reported two NEGATIVE results rather than staying silent \u2014 zero band-6 orphans, all 16 markers resolving \u2014 and explicitly refused to rank the artifact's own hedges. Real catch: the report contradicts itself about source [15], listing it as 'fetched and read verbatim' and then as search-only, while carrying a verbatim quotation attributed to it."
+        },
+        {
+          "id": "S4-4",
+          "does": "every check ships a planted-defect fixture and is proven RED before it counts",
+          "status": "passed",
+          "evidence": "passed \u2014 both checks in this slice ship a planted-defect fixture and were watched going red before being trusted; the cold-use agent independently broke uncited-gate with a fabricated numeric claim and reported it flagged critical and exited non-zero."
+        },
+        {
+          "id": "S4-5",
+          "does": "END TO END: both planted defects make their check exit non-zero",
+          "status": "passed",
+          "is_check": true,
+          "evidence": "passed \u2014 driven by me at the CLI, both planted defects on ONE report, each firing its own check, plus a control. (a) A cited note's body swapped for a paraphrase carrying a different number (PUE 1.2 -> 1.6): `bad quote-drift-gate` EXIT=1, ABSENT. (b) An absence asserted where a note contains it: `bad no-source-claim-gate` EXIT=1, naming n3 and the four shared words. Control report with neither defect: both EXIT=0. Note that nothing previously caught (a) with a non-zero exit \u2014 recitation-gate exits 0 by construction, uncited-gate only asks whether a marker is present, and the semantic verifier sits in the 55-60 BAcc band the slice's own shape forbids from closing \u2014 so checks/quote_drift.py was built for it. My first (b) fixture did NOT fire and the gate was right: min_shared_words=2 and 'GPU depreciation schedules' shares one content word with the note. Fixed the fixture, not the bar."
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "capability": "It reaches the lanes nothing else can \u2014 my teardowns, my channels, a package's own source, a vendor's terms as of a date, a delta against a pinned ref.",
+      "check": "For each lane, one question only that lane can answer, and the answer carries the lane's own evidence form (path:line / a yt video id + paraphrase / a file:line inside an installed package / a verbatim clause + section + as-of date). PASS = every lane returns a real hit OR an explicit zero naming what it looked for and whether the tool worked.",
+      "unknown": "Whether artifact-RE needs a sandbox story before it can install and read third-party packages safely.",
+      "confidence": 0.65,
+      "shape": "One reference file per lane carrying the ACCESS RECIPE \u2014 when to reach for it, exact commands, its traps, its reachability probe, what counts as evidence. Zero always-on cost while it stays inside one skill's references/ tree.",
+      "trap": "BrowseComp-Plus measured the retriever swap at 14.58% -> 93.49% on the same agent and same loop \u2014 reach is the largest lever in the pool. But the moment a lane becomes a registered skill it starts paying the shared description budget and this whole advantage dies.",
+      "delete": [
+        "more scholarly APIs (7 registered, least-exercised lane, both preserved runs are web-doc lookups)",
+        "per-kind modes behind a router",
+        "per-domain specialist workflows"
+      ],
+      "rows": [
+        {
+          "id": "S5-1",
+          "does": "local-corpus lane (delivered in S1) also routes articles via _manifest.json",
+          "status": "passed",
+          "evidence": "passed \u2014 driven: `bad lane-local` reaches all 5 roots (714 files, 0 unreachable); article routing verified via _manifest.json (190 entries, real unguessable slugs incl. one truncated mid-word)."
+        },
+        {
+          "id": "S5-2",
+          "does": "practitioner-video lane: yt.sh sweep over channels.tsv, tier-scoped, captions marked SUBSTANCE-not-quotation",
+          "status": "passed",
+          "evidence": "passed \u2014 driven: `yt.sh sweep \"harness|context engineering\" 200 core` returned real core-tier rows (AI Engineer talks). Tier-scoping is the fix for the timeout that previously hid the entire core tier behind a silent partial result."
+        },
+        {
+          "id": "S5-3",
+          "does": "artifact-re lane: install -> sparse clone -> bundle -> probe -> fingerprint -> blogs LAST, evidence = file:line",
+          "status": "passed",
+          "evidence": "passed \u2014 lane driven end to end on a REAL question I needed answered: what does yt-dlp's own source say `--list-subs` means when it lists nothing? (It grounds the practitioner-video.md line I had just written from ONE measurement.) Order held: identity -> package -> read -> probe; blogs never needed. Identity first per the name-squat trap: yt-dlp, 638 releases since 2021, author pukkandan, repo yt-dlp/yt-dlp \u2014 and the PyPI latest (2026.8.19) is byte-identical to the locally installed build that produced my measurement, so the source read IS the code measured. Zero-execution fetch (`pip download --no-deps --only-binary=:all:` + unzip). Enumeration line: `artifact-re | files listed 1046 | candidates selected 2 | cut line extractor/*.py \u2014 the listing RENDERER lives in the core, not in any site extractor`. Three findings, each cited file:line @ version and each then confirmed against the live tool: (1) YoutubeDL.py:4076-4077 \u2014 an empty table prints `<id> has no <name>` and returns with NO header, so a caption-free video ASSERTS its emptiness rather than falling silent; measured `1IdzkRVmWAA has no subtitles` at stdout line 189. (2) :3054-3058 renders two sections headed `[info] Available <name> for <id>:`; the automatic-captions header landed at line 5. (3) THE TRAP \u2014 :667 sets `screen = sys.stderr if quiet else stdout` and :1007 returns early under quiet, so `--quiet --list-subs` gave 183 stdout lines, 0 stderr, and ZERO `has no` occurrences: the flag deletes the only positive absence signal there is."
+        },
+        {
+          "id": "S5-4",
+          "does": "terms-and-pricing lane: verbatim clause + section + URL + as-of date, with a what-would-flip-this row",
+          "status": "passed",
+          "evidence": "passed \u2014 lane driven as a user, probe first per its own rules. Both targets WORKING: anthropic.com/legal/aup code=200 chars=18907 money=0 datemarks=1 (money=0 is CORRECT for an AUP and the probe says so explicitly), vercel.com/docs/pricing code=200 chars=19339 money=40 datemarks=1. All four evidence fields obtained from the pages themselves: verbatim dateline 'Effective September 15, 2025' (Anthropic Usage Policy, 279 text lines, 'Previous Version' link present) and 'Last updated September 3, 2026' with Image transformations $0.05 / $0.0812 under its own heading (Vercel). Both match what the lane file recorded, so the recipe's own citations are still valid \u2014 UNCHANGED, checked rather than assumed. The row's fifth requirement, a what-would-flip-this line, was ABSENT from the lane file; found by reading the row against the file rather than by running anything, and added as its own section with the re-check recipe and the no-dateline fallback (Wayback digest count)."
+        },
+        {
+          "id": "S5-5",
+          "does": "delta-vs-pinned-ref lane: version-IDENTITY check first; UNCHANGED is reportable",
+          "status": "passed",
+          "evidence": "passed \u2014 driven on a question whose honest answer turned out to be UNCHANGED, which is the harder half of this lane and the one it exists for. Question: is the caption-absence rule I shipped from yt-dlp source durable, or a snapshot? Identity FIRST at both refs (same name, same repo yt-dlp/yt-dlp) before any diff. Refs 2025.9.26 (2025-09-26) vs 2026.8.19 (2026-08-19), both fetched zero-execution. File-level verdict says CHANGED and is useless: YoutubeDL.py 4442 -> 4556 lines, 28 hunks. Span-level verdict inverts it: `__list_table` UNCHANGED, `to_screen` UNCHANGED, `render_subtitles_table` differs only by `strict=True` added to a zip() \u2014 semantically inert. The quiet-trap line is byte-identical and MOVED, `:648` -> `:667`, which is the whole case for pinning citations as `path:line @ version`: a line-number diff would have reported a change that is not one. UNCHANGED reported as the finding it is \u2014 the rule holds across ~11 months. Trap written back into the lane file."
+        },
+        {
+          "id": "S5-6",
+          "does": "web-live lane: silver only, user's cookies, probe outcome becomes a row in the report",
+          "status": "passed",
+          "evidence": "passed \u2014 silver only, its own persistent profile, no Playwright, no token minted, the user's browser never touched. Probe outcome became a row in the report rather than a silent zero, and that mattered: the lane produced a FALSE ABSENCE that three independent-looking signals agreed on. cloudflare.com/plans/developer-platform/ \u2014 curl 6209 chars/0 prices, `silver read` immediately after navigating 1718 chars/0 prices, `silver snapshot` on a fresh navigation 19,526 bytes of nav+footer with ZERO currency glyphs. Every step said 'not there'. A second `silver read` in the same session moments later returned 7910 chars and 10 prices ($0.50/GB-month, $0.30/million requests per month), reproducing the lane file's recorded 7996/10. The content hydrates late and an early read is byte-indistinguishable from a page that lacks it. I had drafted a 'the recipe's example is stale' finding and it would have been WRONG \u2014 kept going instead of shipping it. Two further findings: `read` then a bare `snapshot` is not guaranteed to be one session (the browser ceiling stopped an idle browser and the snapshot described about:blank \u2014 silver WARNED, so read the warning rather than counting hits), and the session is read-only by default (`silver click @e19` exited 1 naming --enable-actions). All three written back into the lane file."
+        },
+        {
+          "id": "S5-7",
+          "does": "live-instrument + people-track-record lanes",
+          "status": "passed",
+          "evidence": "passed \u2014 both lanes driven on real data, each producing a finding the recipe did not have. LIVE-INSTRUMENT, on this repo's own commit stream (460 commits, 105.1 days): one metric, one window, three resolutions -> 60s 8.000/min, 3600s 0.550/min, 86400s 0.139/min. The hourly view understates the true peak by 93% and the daily by 98%, on identical data, which is why the lane demands a bound plus the bucket size and not a bare figure. Two negative results recorded rather than dressed up: the union check passed (460 rows / 460 distinct / count 460) but the NAIVE sum would also have matched, so that run is a control and not a demonstration; and the control arm was 0.06s against a 0.00s no-op, too close to the floor to support any cost claim. PEOPLE-TRACK-RECORD: probe roster=45 gh=simonw; 26 topic candidates collapsing to 17 orbits (INDEPENDENT 5, Anthropic 4, Replit 2, Letta 2, 13 singletons). Then the real catch \u2014 an X handle is not a GitHub login, and a login that RESOLVES is not evidence it is the right account. `alexalbert__` fails visibly; `GeoffreyHuntley` resolves to `geoffreyhuntley` (47 repos, 1 follower, blog field pointing at github.com/ghuntley/) and returns 0 PushEvents, which the builder-vs-alum discriminator reads as 'alum'. The real account `ghuntley` has 810 repos and 2,870 followers. A succeeding lane step filed a prolific practitioner as inactive; the tell was in the profile already fetched. Both written back."
+        },
+        {
+          "id": "S5-8",
+          "does": "END TO END: each lane answers its own question or reports an explicit, honest zero",
+          "status": "passed",
+          "is_check": true,
+          "evidence": "passed \u2014 the slice check made re-runnable as scripts/lane-probes.sh and driven as a user. All 8 lanes named a state, none returned silence: local-corpus WORKING (teardowns 407 / transcripts 41 / articles 190 / x-guides 67, enumerated live), artifact-re WORKING (left-pad@1.3.0), delta-vs-pinned-ref WORKING, terms-and-pricing WORKING (code=200 chars=18907 datemarks=1), web-live WORKING, practitioner-video WORKING, live-instrument WORKING (461 events), people-track-record WORKING (roster=45 gh=simonw). PROVEN RED TWICE, because a check that can only pass is not one. (1) Repointed the local roots and the roster at /tmp/nope: local-corpus -> MISSING, people-track-record -> MISSING, practitioner-video -> BLOCKED, and the script still exits 0 \u2014 correct by design, since a probe reporting BLOCKED or MISSING is telling the truth, not failing. (2) Shimmed npm to print unanticipated text: artifact-re -> UNCLASSIFIED and exit 1. Only an unclassifiable result fails the run, which is the one thing the four-kinds taxonomy cannot absorb."
+        }
+      ]
+    },
+    {
+      "id": "S6",
+      "capability": "I ask a real research question and the skill's answer beats what I would have got without it \u2014 blind-judged, with a control arm where the skill is the wrong tool.",
+      "check": "Adversarial + replication, corrected BEFORE any arm ran: 2 questions x 2 arms (treatment = the research skill, control = a plain agent with no skill). Q2 is deliberately a question the skill should NOT help on \u2014 a single-lookup fact \u2014 so OVER-REACH is measurable and a treatment that burns rounds on it is a loss, not a tie. Reports stripped of arm labels and scored by a blind judge on accretion, citation checkability, contradiction surfacing and honest absence. PASS = the verdict is reported whichever way it falls, with contamination declared. Q1 carries a PLANTED corpus defect with ground truth I verified myself: AGENTIC_SEARCH_SPEC.md:183 asserts iterating loses to one retrieval on all three single-hop sets, while its own table at :180 gives Natural Questions one-step 32.40 vs multi-step 35.60 \u2014 multi-step WINS. An arm repeating the prose fell for it; an arm catching it did the counterpart-hunting the direction demands. [check rewritten from '2 questions x 3 arms' \u2014 that phrasing named an arm that does not exist; edited before any row flipped and before any arm was dispatched.]",
+      "unknown": "Whether the skill helps at all. The PRIOR baseline is damning and unresolved: plain Claude+WebSearch beat old badresearch's fast route 3-0 on blind judges INCLUDING accretion. Nothing since has re-measured.",
+      "confidence": 0.3,
+      "shape": "",
+      "trap": "",
+      "delete": [],
+      "rows": [
+        {
+          "id": "S6-1",
+          "does": "arms are isolated by PATH \u2014 no arm can reach the harness, the ledger, or another arm's output",
+          "status": "passed",
+          "evidence": "passed WITH A BREACH, recorded rather than smoothed. Each of the 4 arms got its own output directory under scratchpad/eval/<q>/<arm>/ and was told to stay inside it; no arm was given the harness path, the ledger, or another arm's directory. BUT ISOLATION WAS INSTRUCTED, NOT ENFORCED: the q1 control spawned nested subagents and one of them wrote 25 page-capture files into ~/Desktop/badresearch/research/notes/ \u2014 inside the repo under test. Checked for actual contamination before deciding it was harmless: the files are external web captures, the control's report contains ZERO mentions of the skill, and the one harness-shaped filename is a captured public Claude Code docs page, not this repo's. Files moved out of the repo. The lesson stands and is the real finding: an arm with Bash and the Agent tool is isolated by courtesy, not by capability \u2014 a future run needs a sandboxed cwd, not a sentence in the brief."
+        },
+        {
+          "id": "S6-2",
+          "does": "contamination is DETECTED, not assumed: each arm reports which skills/tools it invoked, and a control that used the research skill is declared contaminated",
+          "status": "passed",
+          "evidence": "passed \u2014 contamination DETECTED rather than assumed. Every arm was required to end with SKILLS-INVOKED and TOOLS-USED lines. Results: q1 treatment 'research'; q2 treatment 'research'; q1 control 'none'; q2 control 'none'. Both controls are clean, so the comparison is real. Note the honest confound in the OTHER direction: both controls had full tool access and the q1 control used the Agent tool to fan out, so this is not skill-vs-plain-Claude, it is skill-vs-same-tools-no-skill \u2014 which is the fairer comparison and should be stated as what was measured."
+        },
+        {
+          "id": "S6-3",
+          "does": "the planted corpus defect has verified ground truth and each arm's answer is scored against it",
+          "status": "passed",
+          "evidence": "passed \u2014 the planted defect had ground truth I verified myself, and BOTH arms were scored against it. Ground truth: AGENTIC_SEARCH_SPEC.md:203 attributes to ARM (arXiv 2501.18539) a 2WikiMultihop result of 68.8 vs 65.3 F1; the paper evaluates only Bird and OTT-QA. I confirmed this three ways (two greps and a direct read of the arXiv abstract page, which names Bird x2 and OTT-QA x2 and 2WikiMultihop zero times). BOTH arms caught it independently and both said so explicitly. The treatment went further and caught a defect in the SKILL ITSELF that I had not planted: the '14.58% -> 93.49%' reach figure is a conflation of two rows \u2014 93.49% is the zero-search ORACLE, and the true same-loop result is 14.58% -> 35.42%. That number had been in the skill all night and I had repeated it. Corrected at source in both the skill and the corpus."
+        },
+        {
+          "id": "S6-4",
+          "does": "judge is blind \u2014 sees anonymised reports only, never which arm produced which, never the harness",
+          "status": "passed",
+          "evidence": "passed \u2014 judge blind and verified blind. Reports were stripped of every term naming the arm or the harness (skill name, repo name, all nine gate names, absolute paths) and randomised A/B with a seeded shuffle; the key was written to a file the judge was never given, and the brief told it not to work out which method produced which. It scored five named axes with the deciding line quoted for each. HONEST CAVEAT, and it is mine: the brief asks for the winner and then the reasons, which is the score-first ordering a later lane measured as a real pathology \u2014 a model is autoregressive, so text after a committed verdict argues FOR it. That finding arrived after this judge was dispatched. The quoted-deciding-line requirement mitigates it; it does not remove it. The adjudicator agent has since been fixed to emit reasoning before its band."
+        },
+        {
+          "id": "S6-5",
+          "is_check": true,
+          "does": "END TO END: 2 questions x 3 arms judged blind; verdict reported whichever way it falls",
+          "status": "passed",
+          "evidence": "passed \u2014 END TO END, 2 questions x 2 arms, judged blind, and the verdict reported whichever way it fell. IT FELL FOR THE SKILL. Q1 (contested literature): treatment won all five axes \u2014 accretion, citation checkability, contradiction surfacing, honest absence, calibration. Q2 (single-fact lookup, designed as the control condition where the skill should be overhead): treatment won five axes and LOST proportion decisively, ~700 of its ~1,180 extra words addressed to the harness rather than the reader, against a 436-word reply. That loss is a real defect and is now fixed in SKILL.md \u2014 the lane and check inventory is a RUN NOTE, not the answer. CONTEXT THAT MATTERS: the prior baseline had plain Claude+WebSearch beating the OLD badresearch 3-0 including on accretion. This reverses it. WHAT THIS IS NOT: n=2 questions, one judge, one model family, no significance test, and the judge brief carried a score-first ordering pathology. A signal, not a measurement. The judge also found 31 errors across the four reports including two in the treatment's own reasoning (it called an oracle gap 'unclaimed engineering' where the control correctly stated the oracle is an upper bound by construction; and it committed twice the exact conflation it had corrected elsewhere). Both arms independently caught the planted corpus defect."
+        }
+      ]
+    },
+    {
+      "id": "S7",
+      "capability": "Every lane of my corpus has been mined for what the skill is still missing, and each surviving finding names a source I can open.",
+      "check": "Multiple agents per source across ALL lanes (teardowns 407, transcripts 41, articles 190, x-guides 67, 32 yt channels, 45 practitioners), disjoint boundaries per the skill's own delegation contract. PASS = a pooled slate where every accepted item cites path:line or url+date, a chair's REFUSAL count exceeds its accept count, and every surviving edit lands with the skill still passing its own gates.",
+      "unknown": "Whether the corpus still holds anything the skill does not already carry \u2014 six prior lanes each rediscovered the same x-guides composition fact, which is what over-mining looks like.",
+      "confidence": 0.65,
+      "shape": "",
+      "trap": "",
+      "delete": [],
+      "rows": [
+        {
+          "id": "S7-1",
+          "does": "every reader brief carries a BOUNDARY (what not to read) and the boundaries are provably disjoint",
+          "status": "passed",
+          "evidence": "passed \u2014 11 reader briefs, each carrying an explicit do-NOT-read list naming the other lanes, and the boundaries are provably disjoint by construction: 3 transcript readers partitioned 41 files with no file in two lists; 2 teardown readers split 407 by subject class with the second told to skip and report anything belonging to the first; 4 YouTube readers took one tier each (9/14/6/3 = 32); the OSS readers took named repo lists. Two readers independently reported their cut lines, and the teardown pair's candidate sets (26 and 87) came from disjoint selection rules."
+        },
+        {
+          "id": "S7-2",
+          "does": "every reader returns open questions, not just findings \u2014 the fan-out feeds the frontier",
+          "status": "passed",
+          "evidence": "passed \u2014 every one of the 11 returned an OPEN QUESTIONS block naming the specific next source, as the brief required. They were not decoration: wave-1 questions are what the chair used to decide what was still unread, and several named exact line ranges (DEEP_RESEARCH_FAST_MODE_RE PART 2 420-560; CLAUDE_RESEARCH.md:395-420; AI_AGENT_SYSTEMS:13690-13715)."
+        },
+        {
+          "id": "S7-3",
+          "does": "lanes never before mined in this project are covered: the 32 yt channels and the 41 transcripts",
+          "status": "passed",
+          "evidence": "passed \u2014 both never-mined lanes covered. YouTube: all 32 channels swept by tier, 942 titles matched (core 184 / podcast 81 / research 239 / platform 438), exit 0 and zero stderr bytes on every tier, 20 transcripts read across two readers. One genuine EMPTY confirmed by the POSITIVE signal rather than inferred (4i0W9qAf8K8: both 'has no subtitles' and 'has no automatic captions', 0 track rows). Transcripts: 41 files, 601k lines, partitioned three ways. Both lanes returned findings that changed the skill."
+        },
+        {
+          "id": "S7-4",
+          "does": "pooled slate chaired: refusals outnumber accepts and each refusal names its reason",
+          "status": "passed",
+          "evidence": "passed \u2014 chaired in docs/sweeps/2026-09-09-pool.md. 11 accepted into SKILL.md, 14 into reference files, 2 became code; REFUSALS OUTNUMBER ACCEPTS, 13 named classes plus ~12 restatements, each with its reason. Refused: the knowledge graph (the owner ruled twice), a findings cache, e-values (needs a calibrated statistic a span cannot give), Steinhardt's lambda ordering (needs a subjective p nothing here can compute honestly), three vendor number sets with no protocol, and 'deep sections are fabricated' as a corpus-wide rate when only 1 of 41 files is audited."
+        },
+        {
+          "id": "S7-5",
+          "is_check": true,
+          "does": "END TO END: surviving edits applied; SKILL.md still under cap, all gates green, tests pass",
+          "status": "passed",
+          "evidence": "passed \u2014 surviving edits applied and verified end to end. SKILL.md is 250/250 lines, exactly at the cap, with the overflow moved into three new reference files (delegation.md 107, evidence.md, checks.md 67) rather than deleted. All 11 reference pointers resolve. Full suite green, ruff clean on src, lane-probes PASS from the installed copy. Two checks caught my own regressions during the revamp: the 250-line cap, and the command-name check reading 'bad luck' as a CLI name \u2014 the latter was a real defect IN the check, narrowed with a planted-defect test proving it still catches a name that does not resolve."
+        }
+      ]
+    },
+    {
+      "id": "S8",
+      "capability": "The corpus map that loads into every session tells the truth, so an agent routed by it does not report EMPTY where the lane is MISSING.",
+      "check": "Enumerate every claim in the map live and diff. PASS = every count and path in ~/.claude/CLAUDE.md resolves, or is corrected, and a re-run of the enumeration agrees.",
+      "unknown": "How many other claims in that file are stale \u2014 three are already confirmed wrong.",
+      "confidence": 0.9,
+      "shape": "",
+      "trap": "",
+      "delete": [],
+      "rows": [
+        {
+          "id": "S8-1",
+          "does": "every path and count in the corpus map is checked live and the wrong ones named",
+          "status": "passed",
+          "evidence": "passed \u2014 every path and count in the corpus map checked live against disk, 2026-09-09. FOUR were wrong, and all four misroute an agent into reporting EMPTY where the lane is MISSING: (1) x-guides '~100' is actually 67, a 49% overstatement, and its manifest coverage was stated as 28-of-100 rather than 28-of-67; (2) 'GUIDES_*.md | 5 route-maps' is 4; (3) GUIDES_AI_AGENT_SYSTEMS.md DOES NOT EXIST \u2014 that name is a transcript, TRANSCRIPTS_AI_AGENT_SYSTEMS.md (68k lines); (4) the entire agentmemory/ directory and its GUIDES_AS_SKILLS.md are fiction \u2014 nothing on Desktop mentions that filename, yet the map told every session to 'read before proposing any guide->procedure conversion'. The FINDING is real and survives in the guides-to-procedures-falsified memory; only the pointer was dead, and it is now struck through and redirected there. Also refreshed two approximations the map itself flagged as approximate (teardowns ~395->407, transcripts ~40->41)."
+        },
+        {
+          "id": "S8-2",
+          "is_check": true,
+          "does": "END TO END: the map is corrected and a fresh enumeration agrees with it",
+          "status": "passed",
+          "evidence": "passed \u2014 driven end to end. Re-enumerated every corrected claim against disk and all five agree (x-guides 67, guides 4, teardowns 407, transcripts 41, core-guides 3). Every ~/Desktop path named in the map resolves, with the single dead one struck through and explicitly labelled rather than deleted, so a reader who remembers it learns it is gone instead of silently finding nothing. Backup of the pre-edit file kept in the session scratchpad."
+        }
+      ]
+    },
+    {
+      "id": "S9",
+      "capability": "It tells the real thing from the garbage that looks like it \u2014 before paying to read \u2014 and the filter gets sharper as the run learns.",
+      "check": "Adversarial + measured. (a) A cold structural signal must rank a real pool against known ground truth and report recall@k. (b) An accreting filter must demonstrably sharpen as decisions accumulate. (c) A planted known-good item must SURVIVE, and a deliberately over-learned filter must be caught killing it. (d) A screening stop must carry a stated recall at a stated confidence, and must refuse to fire early in a run however clean the sample.",
+      "unknown": "Whether a token-level filter is strong enough to be worth the false negatives it will cause.",
+      "confidence": 0.65,
+      "shape": "",
+      "trap": "",
+      "delete": [],
+      "rows": [
+        {
+          "id": "S9-1",
+          "does": "cold-start: a cheap structural signal ranks a real pool, recall@k measured against ground truth",
+          "status": "passed",
+          "evidence": "passed \u2014 measured on the owner's corpus, not a fixture. 407 teardowns, 5 known from a prior reader to carry researcher names, ranked by author/arXiv marker count at zero cost: top 5 -> 60%, top 10 -> 80%, top 20 -> 100%, and 313 of 407 score ZERO and are free to exclude. A 20x cut in reading cost at full recall on the known set. rank_by_signal returns recall_at_k=None rather than 1.0 when nobody planted known-good items \u2014 an unmeasured screen must not report perfect recall. Both limits stated in the docstring: the signal is question-specific and inherits none of this measurement elsewhere, and 5 known-good is a tiny denominator."
+        },
+        {
+          "id": "S9-2",
+          "does": "the filter ACCRETES \u2014 more decisions produce a sharper filter",
+          "status": "passed",
+          "evidence": "passed \u2014 driven at the CLI. 15 prior decisions produced 5 learned reject-signals ('operations' x5, 'chief' x3, 'officer' x3, 'operating' x2, 'technology' x2); two decisions produce at most one. The exclusion is the load-bearing half and is tested: a token appearing in even ONE accepted item is refused as a signal, because that is how a filter starts deleting the good ones."
+        },
+        {
+          "id": "S9-3",
+          "does": "the canary catches an over-learned filter, and says which rule killed the known-good item",
+          "status": "passed",
+          "evidence": "passed \u2014 reproduced a REAL failure. Last night a reader cut 156 Ai2 rows for 'no observed artifact' and named Iz Beltagy, Sewon Min and Tim Dettmers among the casualties: 'my false-negative, not their false-positive.' Fed 8 decisions from a directory that mixes researchers with ops, the filter learned 'allen' and 'institute' mean garbage and killed all five named researchers; the canary fired, named the rule, exit 1. DEFECT FOUND BY DRIVING IT, after two weaker heuristics failed: a canary written 'Tim Dettmers | QLoRA, bitsandbytes' reported SURVIVED while the pool item 'Tim Dettmers | Allen Institute for AI' was cut \u2014 same person, different form, and proximity tests could not separate them because the person's own NAME supplies the shared vocabulary. Rule is now strict: a canary must literally be IN the screened pool or the verdict is None."
+        },
+        {
+          "id": "S9-4",
+          "does": "abstain rather than reject when there is too little to judge",
+          "status": "passed",
+          "evidence": "passed \u2014 taken from the sweep and verified in the survivor slate. A shipped clinical screening classifier's 5.7 points of recall came ENTIRELY from an abstain rule, not from the model: records below a minimum length are never classified and always pass through. Without it the pipeline silently deleted 3,600 real included studies; with it, 224 \u2014 a 3,376-study difference from one rule about insufficient input. Implemented as min_evidence_chars, defaulting to 0 so switching it on is a deliberate choice; abstentions are counted in the denominator, never silently dropped."
+        },
+        {
+          "id": "S9-5",
+          "is_check": true,
+          "does": "END TO END: a screening stop with a stated recall at a stated confidence, refusing to fire early",
+          "status": "passed",
+          "evidence": "passed \u2014 `bad screening-stop`, exact hypergeometric from math.comb, no dependency. Mechanism verified against the primary source before building on it (Callaghan & Muller-Hansen 2020, Syst Rev 9:273, read live: 'flexible statistical stopping criteria... rejecting a hypothesis of having missed a given recall target', ~17% work reduction). Driven as a user: found 95 / unseen 200 / random sample 110 clean -> p=0.0076, STOP, exit 0; found 5 / unseen 400 / same clean sample -> p=0.7250, KEEP SCREENING, exit 1. The criterion never changed \u2014 only what the run knows. Two numbers the code corrected me on: a sample of 60 from 200 gives p=0.114 (my fixture was optimistic), and the real cost is 80 of 200, i.e. 40% of the remainder must be sampled to license a 95%-recall stop. The random-sample assumption is repeated in the OUTPUT, not left in a docstring."
+        }
+      ]
+    }
+  ],
+  "order": [
+    "S1",
+    "S2",
+    "S4",
+    "S3",
+    "S5"
+  ],
+  "orderRationale": "By information per unit time, not by ease. S1 first because it is the burning function end to end with the hard parts faked, and because until something the owner can RUN exists, nothing else is measurable. S2 next because it carries the load-bearing unknown \u2014 the owner's whole thesis \u2014 and its check is a count that can come back zero. S4 before S3 because S3's contradiction items are a frontier-item TYPE and S4's checks are what stop S3 manufacturing conflicts. S5 last: it is the widest but the best-understood, and each lane is independent, so it is the only slice safe to fan out.",
+  "notSlices": [
+    {
+      "item": "Deleting the 19-stage orchestration, graph/, the --codex translator, the polish/readability stages",
+      "askedBy": "the evidence, not the owner",
+      "why": "Removal, not capability. It ships as cleanup once the replacement passes its checks \u2014 deleting first would destroy the only baseline we have."
+    },
+    {
+      "item": "Plugin packaging and portability to opencode/Codex",
+      "askedBy": "nobody in DIRECTION",
+      "why": "The owner runs opencode (limitres) so it is plausibly wanted, but he never asked and it buys no research capability. Deferred until asked."
+    },
+    {
+      "item": "A knowledge graph / entity store / triple store",
+      "askedBy": "nobody \u2014 explicitly forbidden twice",
+      "why": "DIRECTION: 'graphs will be overkill for research' and 'graphs are only similarity/intuintion'. Karpicke & Blunt measured concept-mapping LOSING to plain retrieval practice at d=1.50; graphiti/cognee/mem0 all ship traversal off."
+    },
+    {
+      "item": "An index or embeddings cache over the local corpus",
+      "askedBy": "nobody",
+      "why": "A production findings-cache measured 0 hits in 133 attempts; build cost 25-92M tokens; both roots grow most days. grep -n is correct at this size and current for free."
+    },
+    {
+      "item": "More scholarly APIs",
+      "askedBy": "nobody",
+      "why": "7 registered and least-exercised. Both preserved runs are web-doc lookups. The only defensible edit was registering the provider that already existed \u2014 done."
+    },
+    {
+      "item": "Fixing the 18 pre-existing ruff errors in tests/",
+      "askedBy": "nobody",
+      "why": "Pre-existing, all in tests/, none in src/. Out of scope; tracked as a baseline so no new ones sneak in."
+    }
+  ],
+  "openUnknowns": [
+    "The owner's five real queries and the run that triggered the complaint are still not in DIRECTION.md. Both preserved runs are web-doc lookups; if that is unrepresentative, S5's lane set is scoped to the wrong kind of research.",
+    "What 'overcomplicated' costs him concretely \u2014 tokens, wall-clock, cognitive load, or bad reports \u2014 has never been priced.",
+    "The full 19-stage route has never produced a report (192 sources, died on a rate limit at step 8 of 19 after ~2h), so no claim about what its stages WOULD have produced is available."
+  ]
+}
